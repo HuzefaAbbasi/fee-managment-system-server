@@ -1,6 +1,6 @@
 import express from "express";
-import userRouter from "./routes/user.route.js";
-import cors from "cors"
+import userRouter from "./routes/userRoute.js";
+import cors from "cors";
 import bodyParser from "body-parser";
 export const app = express();
 
@@ -14,14 +14,14 @@ app.use(express.urlencoded({ extended: true }));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Internal Server Error!');
+  res.status(500).send("Internal Server Error!");
 });
 
 // Routes
 app.use("/api/", userRouter);
 
 // Handle 404 error
-app.all("*", (req, next) => {
+app.all("*", (req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found!`);
   err.statusCode = 404;
   next(err);

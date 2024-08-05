@@ -5,33 +5,14 @@ const userSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required().min(6),
-  phone: Joi.string().required(),
+  phone: Joi.string().length(11).required(),
   type: Joi.string().required(),
 });
-
-const updateUserSchema = Joi.object({
-  name: Joi.string().optional(),
-  email: Joi.string().email().optional(),
-  password: Joi.string().optional().min(6),
-  phone: Joi.string().optional(),
-  type: Joi.string().optional(),
-}).min(1);
 
 // Middleware for validating user data
 export const validateUser = (req, res, next) => {
   const user = req.body;
-  let schema;
-
-  // Determine which schema to use based on request method
-  if (req.method === "POST") {
-    schema = userSchema;
-  } else if (req.method === "PUT" || req.method === "PATCH") {
-    schema = updateUserSchema;
-  } else {
-    // Unsupported HTTP method
-    return next(new Error("Unsupported HTTP method", 400));
-  }
-
+  const schema = userSchema;
   // Validate request body against schema
   const { error } = schema.validate(user);
   if (error) {

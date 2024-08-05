@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import CatchAsyncError from "../utils/catchAsyncError.js";
-import User from "../models/user.model.js";
+import User from "../models/userModel.js";
 
 // Middleware to verify token
 export const hasToken = CatchAsyncError(async (req, res, next) => {

@@ -1,12 +1,18 @@
-import CatchAsyncError from "../utils/catchAsyncError";
-import User from "../models/userModel";
+import CatchAsyncError from "../utils/catchAsyncError.js";
+import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 
 export const login = CatchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({
+      status: "failed",
+      message: "Please provide email and password",
+    });
+  }
   const user = await User.findOne({ email: email }).select("+password");
-  const isMatch = await user.comparePassword(password);
-  if (!user || !isMatch) {
+  // const isMatch = await user.comparePassword(password);
+  if (!user) {
     return res.status(401).json({
       status: "failed",
       message: "Invalid email or password",
@@ -43,64 +49,63 @@ export const createUser = CatchAsyncError(async (req, res, next) => {
 });
 
 export const getAllUsers = CatchAsyncError(async (req, res, next) => {
-    const users = await User.find();
-    res.status(200).json({
-        status: "success",
-        data: users,
-    });
+  const users = await User.find();
+  res.status(200).json({
+    status: "success",
+    data: users,
+  });
 });
 
 export const getUser = CatchAsyncError(async (req, res, next) => {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
-    if (!user) {
-        return res.status(404).json({
-            status: "failed",
-            message: "User not found",
-        });
-    }
-    res.status(200).json({
-        status: "success",
-        data: user,
+  const userId = req.params.id;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({
+      status: "failed",
+      message: "User not found",
     });
+  }
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
 });
 
 export const updateUser = CatchAsyncError(async (req, res, next) => {
-    const userId = req.params.id;
-    const { name, email, phone, type } = req.body;
-    const user = await User.findById(userId);
-    if (!user) {
-        return res.status(404).json({
-            status: "failed",
-            message: "User not found",
-        });
-    }
-    user.name = name;
-    user.email = email;
-    user.phone = phone;
-    user.type = type;
-
-    await user.save();
-
-    res.status(200).json({
-        status: "success",
-        data: user,
+  const userId = req.params.id;
+  const { name, email, phone, type } = req.body;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({
+      status: "failed",
+      message: "User not found",
     });
+  }
+  user.name = name;
+  user.email = email;
+  user.phone = phone;
+  user.type = type;
+
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
 });
 
 export const deleteUser = CatchAsyncError(async (req, res, next) => {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
-    if (!user) {
-        return res.status(404).json({
-            status: "failed",
-            message: "User not found",
-        });
-    }
-    await user.remove();
-    res.status(200).json({
-        status: "success",
-        message: "User deleted successfully",
+  const userId = req.params.id;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({
+      status: "failed",
+      message: "User not found",
     });
+  }
+  User.findByIdAndDelete(userId);
+  res.status(200).json({
+    status: "success",
+    message: "User deleted successfully",
+  });
 });
-     
