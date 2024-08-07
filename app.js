@@ -1,7 +1,8 @@
 import express from "express";
-import userRouter from "./routes/userRoute.js";
 import cors from "cors";
 import bodyParser from "body-parser";
+import userRouter from "./routes/userRoute.js";
+import studentRouter from "./routes/studentRoute.js";
 export const app = express();
 
 // Middlewares
@@ -18,7 +19,7 @@ app.use((err, req, res, next) => {
 });
 
 // Routes
-app.use("/api/", userRouter);
+app.use("/api/", userRouter, studentRouter);
 
 // Handle 404 error
 app.all("*", (req, res, next) => {
