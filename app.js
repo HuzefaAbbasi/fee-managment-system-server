@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import userRouter from "./routes/userRoute.js";
 import studentRouter from "./routes/studentRoute.js";
+import challanRouter from "./routes/challanRoute.js";
 export const app = express();
 
 // Middlewares
@@ -19,7 +20,7 @@ app.use((err, req, res, next) => {
 });
 
 // Routes
-app.use("/api/", userRouter, studentRouter);
+app.use("/api/", userRouter, studentRouter, challanRouter);
 
 // Handle 404 error
 app.all("*", (req, res, next) => {
