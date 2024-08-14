@@ -1,4 +1,3 @@
-import { ref } from "joi";
 import mongoose from "mongoose";
 import AutoIncrement from "mongoose-sequence";
 
@@ -6,11 +5,7 @@ const challanSchema = new mongoose.Schema(
   {
     challanNo: {
       type: Number,
-      required: true,
-    },
-    challanDate: {
-      type: Date,
-      required: true,
+      // required: true,
     },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,

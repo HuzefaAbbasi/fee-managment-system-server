@@ -1,8 +1,6 @@
 import Joi from "joi";
 
 const challanValidationSchema = Joi.object({
-  challanNo: Joi.number().required(),
-  challanDate: Joi.date().required(),
   studentId: Joi.string().required(),
   userId: Joi.string().required(),
   admissionFee: Joi.number().optional(),

@@ -1,10 +1,11 @@
 import Challan from "../models/challanModel.js";
+import Student from "../models/studentModel.js";
 import CatchAsyncError from "../utils/catchAsyncError.js";
 
 export const createChallan = CatchAsyncError(async (req, res) => {
   const challanInfo = req.body;
   const user = req.user;
-  if (user._id !== challanInfo.userId) {
+  if (user.id !== challanInfo.userId) {
     return res.status(401).json({ message: "Unauthorized access!" });
   }
   const student = await Student.findById(challanInfo.studentId);
@@ -35,25 +36,44 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Extract search parameter
-  const { search, date } = req.query;
+  const { challanNo, studentName, startDate, endDate } = req.query;
 
   // Build the query object
   let query = {};
-
-  if (date) {
-    // Assuming date is in YYYY-MM-DD format and you want to find exact matches
-    query.date = new Date(date);
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) {
+      query.createdAt.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = end;
+    }
   }
 
-  if (search) {
+  if (challanNo) {
+    query = {
+      ...query,
+      challanNo: challanNo,
+    };
+  }
+  console.log(studentName);
+  if (studentName) {
     // Create a regular expression to match partial values
-    const regex = new RegExp(search, "i"); // 'i' for case-insensitive matching
+
+    const students = await Student.find({
+      name: { $regex: studentName, $options: "i" },
+    }).select("_id");
+
+    console.log("ids: ", students);
 
     // Use the $or operator to search in both fields
     query = {
       ...query,
-      $or: [{ challanNo: regex }, { "studentId.name": regex }],
+      studentId: { $in: students },
     };
+    console.log(query);
   }
 
   const totalChallans = await Challan.countDocuments(query);
