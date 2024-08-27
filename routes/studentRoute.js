@@ -21,6 +21,6 @@ studentRouter.post("/student", hasToken, validateStudent, createStudent);
 // body will be same as above
 studentRouter.put("/student/:id", hasToken, validateStudent, updateStudentData);
 // to get a specific student passs in URL ... /student/123
-studentRouter.get("/student/:id", hasToken, getStudentData);
+studentRouter.get("/student/:rollNo", getStudentData);
 
 export default studentRouter;

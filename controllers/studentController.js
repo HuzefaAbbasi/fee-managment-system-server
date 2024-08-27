@@ -17,7 +17,7 @@ export const createStudent = CatchAsyncError(async (req, res) => {
   });
 });
 export const getStudentData = CatchAsyncError(async (req, res) => {
-  const student = await Student.findById(req.params.id);
+  const student = await Student.findOne({ rollNo: req.params.rollNo });
   if (!student) {
     return res.status(400).json({
       status: "failed",

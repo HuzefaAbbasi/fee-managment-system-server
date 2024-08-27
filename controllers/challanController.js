@@ -1,6 +1,43 @@
 import Challan from "../models/challanModel.js";
 import Student from "../models/studentModel.js";
 import CatchAsyncError from "../utils/catchAsyncError.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_FILE_PATH = path.join(__dirname, "../data.json");
+
+export const getChallanData = CatchAsyncError(async (req, res) => {
+  fs.readFile(DATA_FILE_PATH, "utf8", (err, data) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: "failed", message: "Data reading failed!" });
+    }
+    if (!data) {
+      res.status(200).json({ status: "success", data: {} });
+    }
+    res.status(200).json({ status: "success", data: JSON.parse(data) });
+  });
+});
+
+export const updateChallanData = CatchAsyncError((req, res) => {
+  const updatedData = req.body;
+
+  fs.writeFile(DATA_FILE_PATH, JSON.stringify(updatedData, null, 2), (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: "failed", message: "Data writing failed!" });
+    }
+    res
+      .status(200)
+      .json({ status: "success", message: "Data updated successfully!" });
+  });
+});
 
 export const createChallan = CatchAsyncError(async (req, res) => {
   const challanInfo = req.body;
