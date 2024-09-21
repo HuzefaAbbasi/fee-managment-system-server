@@ -13,9 +13,10 @@ const challanSchema = new mongoose.Schema(
       ref: "Student",
     },
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      // type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
-      ref: "User",
+      // ref: "User",
     },
     admissionFee: { type: Number },
     tuitionFee: {

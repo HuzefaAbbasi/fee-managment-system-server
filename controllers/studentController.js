@@ -2,7 +2,8 @@ import CatchAsyncError from "../utils/catchAsyncError.js";
 import Student from "../models/studentModel.js";
 
 export const createStudent = CatchAsyncError(async (req, res) => {
-  const student = new Student(req.body);
+  const { name, fatherName, rollNo, grade } = req.body;
+  const student = new Student({name, fatherName, rollNo, class: grade});
   const alreadyStudent = await Student.findOne({ rollNo: student.rollNo });
   if (alreadyStudent) {
     return res.status(400).json({

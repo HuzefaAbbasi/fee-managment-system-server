@@ -41,10 +41,10 @@ export const updateChallanData = CatchAsyncError((req, res) => {
 
 export const createChallan = CatchAsyncError(async (req, res) => {
   const challanInfo = req.body;
-  const user = req.user;
-  if (user.id !== challanInfo.userId) {
-    return res.status(401).json({ message: "Unauthorized access!" });
-  }
+  // const user = req.user;
+  // if (user.id !== challanInfo.userId) {
+  //   return res.status(401).json({ message: "Unauthorized access!" });
+  // }
   const student = await Student.findById(challanInfo.studentId);
   if (!student) {
     return res.status(404).json({ message: "Student not found!" });
@@ -147,17 +147,45 @@ export const updatePaymentStatus = CatchAsyncError(async (req, res) => {
 
 export const updateChallan = CatchAsyncError(async (req, res) => {
   const { id } = req.params;
-  const updatedChallanInfo = req.body;
+  // sending grade from frontend as class is a reserved word...
+  const { studentName, fatherName, rollNo, grade, ...rest } = req.body;
 
-  const challan = await Challan.findById(id);
+  // Find the challan by its ID
+  let challan = await Challan.findById(id);
   if (!challan) {
     return res.status(404).json({ message: "Challan not found!" });
   }
 
-  challan = updatedChallanInfo;
+  // Try to find an existing student by roll number
+  let student = await Student.findOne({ rollNo });
 
+  if (student) {
+    // If student exists, update their details
+    student.name = studentName;
+    student.fatherName = fatherName;
+    student.class = grade;
+  } else {
+    // If student does not exist, create a new student
+    student = await Student.create({
+      name: studentName,
+      fatherName: fatherName,
+      rollNo: rollNo,
+      class: grade,
+    });
+
+    // Update the studentId in challan with the new student's ID
+    challan.studentId = student._id;
+  }
+
+  // Update challan with remaining data
+  const challanData = { ...rest, studentId: challan.studentId };
+  Object.assign(challan, challanData); // Update challan properties
+
+  // Save the updated student and challan
+  await student.save();
   await challan.save();
 
+  // Respond with success
   res.status(200).json({ status: "success", data: challan });
 });
 
@@ -174,4 +202,57 @@ export const deleteChallan = CatchAsyncError(async (req, res) => {
   res
     .status(200)
     .json({ status: "success", message: "Challan deleted successfully!" });
+});
+
+export const getFieldsSum = CatchAsyncError(async (req, res) => {
+  const { startDate, endDate } = req.query;
+  try {
+    const query = {};
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const result = await Challan.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          admissionFee: { $sum: "$admissionFee" },
+          tuitionFee: { $sum: "$tuitionFee" },
+          generalFund: { $sum: "$generalFund" },
+          studentIdCardFund: { $sum: "$studentIdCardFund" },
+          redCrossFund: { $sum: "$redCrossFund" },
+          medicalFund: { $sum: "$medicalFund" },
+          studentWelfareFund: { $sum: "$studentWelfareFund" },
+          scBreakageFund: { $sum: "$scBreakageFund" },
+          magazineFund: { $sum: "$magazineFund" },
+          librarySecutityFund: { $sum: "$librarySecutityFund" },
+          boardUniRegdExamDues: { $sum: "$boardUniRegdExamDues" },
+          sportsFund: { $sum: "$sportsFund" },
+          miscellaneousFund: { $sum: "$miscellaneousFund" },
+          boardUniProcessingFee: { $sum: "$boardUniProcessingFee" },
+          transportFund: { $sum: "$transportFund" },
+          burqaFund: { $sum: "$burqaFund" },
+          collegeExaminationFund: { $sum: "$collegeExaminationFund" },
+          computerFee: { $sum: "$computerFee" },
+          secondShiftFee: { $sum: "$secondShiftFee" },
+          fineFund: { $sum: "$fineFund" },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      status: "success",
+      data: result.length ? result[0] : {}, // Return sums or empty object
+    });
+  } catch (error) {
+    console.error("Error fetching sums:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch sums",
+      error: error.message,
+    });
+  }
 });
