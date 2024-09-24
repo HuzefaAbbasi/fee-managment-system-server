@@ -95,7 +95,7 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
       challanNo: challanNo,
     };
   }
-  console.log(studentName);
+
   if (studentName) {
     // Create a regular expression to match partial values
 
@@ -103,15 +103,15 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
       name: { $regex: studentName, $options: "i" },
     }).select("_id");
 
-    console.log("ids: ", students);
+    
 
     // Use the $or operator to search in both fields
     query = {
       ...query,
       studentId: { $in: students },
     };
-    console.log(query);
   }
+  
 
   const totalChallans = await Challan.countDocuments(query);
   const totalPages = Math.ceil(totalChallans / limit);
