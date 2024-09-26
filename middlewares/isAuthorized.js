@@ -11,7 +11,10 @@ export const adminAccess = CatchAsyncError(async (req, res, next) => {
 });
 
 export const reportAccess = CatchAsyncError(async (req, res, next) => {
-  if (req.user && req.user.type =="report-access" || req.user.type == "admin") {
+  if (
+    (req.user && req.user.type == "report-access") ||
+    req.user.type == "admin"
+  ) {
     return next();
   }
   return res.status(403).json({

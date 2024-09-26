@@ -10,7 +10,11 @@ export const login = CatchAsyncError(async (req, res, next) => {
       message: "Please provide email and password",
     });
   }
-  const user = await User.findOne({ email: email }).select("+password");
+
+  const user = await User.findOne({ email: email, password: password }).select(
+    "-password -createdAt -updatedAt -__v"
+  );
+
   // const isMatch = await user.comparePassword(password);
   if (!user) {
     return res.status(401).json({
@@ -49,7 +53,7 @@ export const createUser = CatchAsyncError(async (req, res, next) => {
 });
 
 export const getAllUsers = CatchAsyncError(async (req, res, next) => {
-  const users = await User.find();
+  const users = await User.find().select("-createdAt -updatedAt -__v");
   res.status(200).json({
     status: "success",
     data: users,
@@ -58,7 +62,7 @@ export const getAllUsers = CatchAsyncError(async (req, res, next) => {
 
 export const getUser = CatchAsyncError(async (req, res, next) => {
   const userId = req.params.id;
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select("-createdAt -updatedAt -__v");
   if (!user) {
     return res.status(404).json({
       status: "failed",
@@ -72,6 +76,7 @@ export const getUser = CatchAsyncError(async (req, res, next) => {
 });
 
 export const updateUser = CatchAsyncError(async (req, res, next) => {
+  console.log(req.body);
   const userId = req.params.id;
   const { name, email, phone, type } = req.body;
   const user = await User.findById(userId);
@@ -87,6 +92,8 @@ export const updateUser = CatchAsyncError(async (req, res, next) => {
   user.type = type;
 
   await user.save();
+
+  console.log(user);
 
   res.status(200).json({
     status: "success",
