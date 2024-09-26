@@ -72,11 +72,13 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
   const limit = parseInt(req.query.limit) || 15;
   const skip = (page - 1) * limit;
 
-  // Extract search parameter
-  const { challanNo, studentName, startDate, endDate } = req.query;
+  // Extract search parameters
+  const { challanNo, studentName, startDate, endDate, isPaid } = req.query;
 
   // Build the query object
   let query = {};
+
+  // Filter by date range
   if (startDate || endDate) {
     query.createdAt = {};
     if (startDate) {
@@ -89,39 +91,38 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
     }
   }
 
+  // Filter by challan number
   if (challanNo) {
-    query = {
-      ...query,
-      challanNo: challanNo,
-    };
+    query.challanNo = challanNo;
   }
 
+  // Filter by student name (partial match using regex)
   if (studentName) {
-    // Create a regular expression to match partial values
-
     const students = await Student.find({
       name: { $regex: studentName, $options: "i" },
     }).select("_id");
 
-    
-
-    // Use the $or operator to search in both fields
-    query = {
-      ...query,
-      studentId: { $in: students },
-    };
+    query.studentId = { $in: students };
   }
-  
 
+  // Filter by isPaid status
+  if (isPaid !== undefined) {
+    query.isPaid = isPaid === "true"; // Convert isPaid to boolean
+  }
+
+  // Get total count of matching challans
   const totalChallans = await Challan.countDocuments(query);
   const totalPages = Math.ceil(totalChallans / limit);
 
+  // Fetch matching challans with pagination
   const challans = await Challan.find(query)
     .populate("userId")
     .populate("studentId")
+    .sort({ createdAt: -1 }) 
     .skip(skip)
     .limit(limit);
 
+  // Send response
   res.status(200).json({
     status: "success",
     data: challans,
@@ -207,7 +208,7 @@ export const deleteChallan = CatchAsyncError(async (req, res) => {
 export const getFieldsSum = CatchAsyncError(async (req, res) => {
   const { startDate, endDate } = req.query;
   try {
-    const query = {};
+    const query = { isPaid: true };
     if (startDate || endDate) {
       query.createdAt = {};
       if (startDate) query.createdAt.$gte = new Date(startDate);
