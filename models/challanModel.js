@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
-import AutoIncrement from "mongoose-sequence";
+import sequence from "mongoose-sequence";
+
+// Initialize mongoose-sequence with mongoose
+const AutoIncrement = sequence(mongoose);
 
 const challanSchema = new mongoose.Schema(
   {
@@ -13,10 +16,9 @@ const challanSchema = new mongoose.Schema(
       ref: "Student",
     },
     userId: {
-      // type: mongoose.Schema.Types.ObjectId,
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
-      // ref: "User",
+      ref: "User",
     },
     admissionFee: { type: Number },
     tuitionFee: {
@@ -50,8 +52,14 @@ const challanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Apply the auto-increment plugin to the schema
-challanSchema.plugin(AutoIncrement(mongoose), { inc_field: "challanNo" });
+const currentYear = new Date().getFullYear();
+const yearPrefix = currentYear.toString().slice(-2); // Get the last two digits of the year
+const startSeq = parseInt(yearPrefix) * 1000; // Create the starting sequence, e.g., 24000 for 2024
+
+challanSchema.plugin(AutoIncrement, {
+  inc_field: "challanNo",
+  start_seq: startSeq,
+});
 
 const Challan = mongoose.model("Challan", challanSchema);
 

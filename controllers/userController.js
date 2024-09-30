@@ -102,6 +102,7 @@ export const updateUser = CatchAsyncError(async (req, res, next) => {
 });
 
 export const deleteUser = CatchAsyncError(async (req, res, next) => {
+  console.log("delete user", req.params.id);
   const userId = req.params.id;
   const user = await User.findById(userId);
   if (!user) {
@@ -110,7 +111,7 @@ export const deleteUser = CatchAsyncError(async (req, res, next) => {
       message: "User not found",
     });
   }
-  User.findByIdAndDelete(userId);
+  await User.findByIdAndDelete(userId);
   res.status(200).json({
     status: "success",
     message: "User deleted successfully",

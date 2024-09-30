@@ -73,7 +73,8 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Extract search parameters
-  const { challanNo, studentName, startDate, endDate, isPaid } = req.query;
+  const { challanNo, studentName, startDate, endDate, isPaid, rollNo } =
+    req.query;
 
   // Build the query object
   let query = {};
@@ -104,6 +105,10 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
 
     query.studentId = { $in: students };
   }
+  if (rollNo) {
+    const studentId = await Student.findOne({ rollNo: rollNo }).select("_id");
+    query.studentId = studentId;
+  }
 
   // Filter by isPaid status
   if (isPaid !== undefined) {
@@ -118,7 +123,7 @@ export const getAllChallan = CatchAsyncError(async (req, res) => {
   const challans = await Challan.find(query)
     .populate("userId")
     .populate("studentId")
-    .sort({ createdAt: -1 }) 
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
@@ -212,7 +217,11 @@ export const getFieldsSum = CatchAsyncError(async (req, res) => {
     if (startDate || endDate) {
       query.createdAt = {};
       if (startDate) query.createdAt.$gte = new Date(startDate);
-      if (endDate) query.createdAt.$lte = new Date(endDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = new Date(end);
+      }
     }
 
     const result = await Challan.aggregate([
