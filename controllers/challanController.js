@@ -8,7 +8,18 @@ import { fileURLToPath } from "url";
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_FILE_PATH = path.join(__dirname, "../data.json");
+
+// it may be useless
+const ADDMISSION_FILE_PATH = path.join(__dirname, "../storage/admission.json");
+const FINE_FILE_PATH = path.join(__dirname, "../storage/fine.json");
+const READMISSION_FILE_PATH = path.join(
+  __dirname,
+  "../storage/readdmission.json"
+);
+const SECONDSHIFT_FILE_PATH = path.join(
+  __dirname,
+  "../storage/secondshift.json"
+);
 
 export const getChallanData = CatchAsyncError(async (req, res) => {
   fs.readFile(DATA_FILE_PATH, "utf8", (err, data) => {
@@ -25,9 +36,23 @@ export const getChallanData = CatchAsyncError(async (req, res) => {
 });
 
 export const updateChallanData = CatchAsyncError((req, res) => {
-  const updatedData = req.body;
+  const { challanType, ...updatedData } = req.body;
 
-  fs.writeFile(DATA_FILE_PATH, JSON.stringify(updatedData, null, 2), (err) => {
+  let FILE_PATH = ADDMISSION_FILE_PATH;
+  if (challanType === "admission") {
+    FILE_PATH = ADDMISSION_FILE_PATH;
+  } else if (challanType === "fine") {
+    FILE_PATH = FINE_FILE_PATH;
+  } else if (challanType === "readdmission") {
+    FILE_PATH = READMISSION_FILE_PATH;
+  } else if (challanType === "secondshift") {
+    FILE_PATH = SECONDSHIFT_FILE_PATH;
+  }
+  else{
+    return res.status(400).json({ message: "Invalid challan type!" });
+  }
+
+  fs.writeFile(FILE_PATH, JSON.stringify(updatedData, null, 2), (err) => {
     if (err) {
       return res
         .status(500)
@@ -41,10 +66,7 @@ export const updateChallanData = CatchAsyncError((req, res) => {
 
 export const createChallan = CatchAsyncError(async (req, res) => {
   const challanInfo = req.body;
-  // const user = req.user;
-  // if (user.id !== challanInfo.userId) {
-  //   return res.status(401).json({ message: "Unauthorized access!" });
-  // }
+
   const student = await Student.findById(challanInfo.studentId);
   if (!student) {
     return res.status(404).json({ message: "Student not found!" });

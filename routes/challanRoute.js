@@ -18,7 +18,7 @@ const challanRouter = express.Router();
 
 challanRouter.get("/challan/data", hasToken, getChallanData);
 challanRouter.get("/challan/sum", hasToken, adminAccess, getFieldsSum);
-challanRouter.put("/challan/data", hasToken, adminAccess, updateChallanData);
+challanRouter.put("/challan/data", updateChallanData);
 challanRouter.post("/challan", hasToken, validateChallan, createChallan);
 challanRouter.put("/challan/:id", hasToken, updateChallan);
 challanRouter.get("/challan/:id", hasToken, getChallan);

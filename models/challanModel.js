@@ -10,6 +10,9 @@ const challanSchema = new mongoose.Schema(
       type: Number,
       // required: true,
     },
+    challanType: {
+      type: String,
+    },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
