@@ -2,56 +2,44 @@ import Challan from "../models/challanModel.js";
 import Student from "../models/studentModel.js";
 import CatchAsyncError from "../utils/catchAsyncError.js";
 import fs from "fs";
-import path from "path";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// it may be useless
-const ADDMISSION_FILE_PATH = path.join(__dirname, "../storage/admission.json");
-const FINE_FILE_PATH = path.join(__dirname, "../storage/fine.json");
-const READMISSION_FILE_PATH = path.join(
-  __dirname,
-  "../storage/readdmission.json"
-);
-const SECONDSHIFT_FILE_PATH = path.join(
-  __dirname,
-  "../storage/secondshift.json"
-);
-
 export const getChallanData = CatchAsyncError(async (req, res) => {
-  fs.readFile(DATA_FILE_PATH, "utf8", (err, data) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ status: "failed", message: "Data reading failed!" });
-    }
-    if (!data) {
-      res.status(200).json({ status: "success", data: {} });
-    }
-    res.status(200).json({ status: "success", data: JSON.parse(data) });
-  });
+  const { challanType, grade } = req.query;
+  if (challanType && grade) {
+    const DATA_FILE_PATH = path.join(
+      __dirname,
+      "../storage",
+      `${challanType}-${grade}.json`
+    );
+    console.log(DATA_FILE_PATH);
+
+    fs.readFile(DATA_FILE_PATH, "utf8", (err, data) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ status: "failed", message: "Data reading failed!" });
+      }
+      if (!data) {
+        res.status(200).json({ status: "success", data: {} });
+      }
+      res.status(200).json({ status: "success", data: JSON.parse(data) });
+    });
+  }
 });
 
-export const updateChallanData = CatchAsyncError((req, res) => {
-  const { challanType, ...updatedData } = req.body;
+export const updateChallanData = CatchAsyncError(async (req, res) => {
+  const { challanType, grade, ...updatedData } = req.body;
 
-  let FILE_PATH = ADDMISSION_FILE_PATH;
-  if (challanType === "admission") {
-    FILE_PATH = ADDMISSION_FILE_PATH;
-  } else if (challanType === "fine") {
-    FILE_PATH = FINE_FILE_PATH;
-  } else if (challanType === "readdmission") {
-    FILE_PATH = READMISSION_FILE_PATH;
-  } else if (challanType === "secondshift") {
-    FILE_PATH = SECONDSHIFT_FILE_PATH;
-  }
-  else{
-    return res.status(400).json({ message: "Invalid challan type!" });
-  }
-
+  const FILE_PATH = path.join(
+    __dirname,
+    `../storage/${challanType}-${grade}.json`
+  );
   fs.writeFile(FILE_PATH, JSON.stringify(updatedData, null, 2), (err) => {
     if (err) {
       return res
